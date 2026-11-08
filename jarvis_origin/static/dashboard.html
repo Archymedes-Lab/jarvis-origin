@@ -1,0 +1,826 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Jarvis Origin</title>
+<style>
+  :root {
+    --bg:#0e1116; --panel:#161b22; --panel2:#1c2430; --line:#262d38;
+    --fg:#e6edf3; --dim:#8b949e; --faint:#6e7681;
+    --crit:#ff5c5c; --high:#ff9f43; --med:#e3c34a; --low:#7d8590; --ok:#3fb950;
+    --accent:#58a6ff; --shadow:0 1px 3px rgba(0,0,0,.4);
+  }
+  @media (prefers-color-scheme: light) {
+    :root {
+      --bg:#f6f8fa; --panel:#fff; --panel2:#f0f3f6; --line:#d8dee4;
+      --fg:#1f2328; --dim:#59636e; --faint:#818b98;
+      --crit:#cf222e; --high:#bc4c00; --med:#9a6700; --low:#6e7781; --ok:#1a7f37;
+      --accent:#0969da; --shadow:0 1px 3px rgba(0,0,0,.08);
+    }
+  }
+  * { box-sizing:border-box; }
+  body {
+    margin:0; background:var(--bg); color:var(--fg); overflow-x:hidden;
+    font:13px/1.55 ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  }
+
+  header {
+    display:flex; align-items:center; gap:14px; flex-wrap:wrap;
+    padding:11px 18px; border-bottom:1px solid var(--line); background:var(--panel);
+    position:sticky; top:0; z-index:20; box-shadow:var(--shadow);
+  }
+  .brand { font-weight:700; font-size:15px; letter-spacing:.5px; }
+  .brand span { color:var(--accent); }
+  .status { padding:3px 12px; border-radius:99px; font-weight:700; font-size:11px;
+            text-transform:uppercase; letter-spacing:.7px; white-space:nowrap; }
+  .s-critical{background:var(--crit);color:#fff} .s-high{background:var(--high);color:#000}
+  .s-medium{background:var(--med);color:#000}   .s-low{background:var(--low);color:#fff}
+  .s-ok{background:var(--ok);color:#fff}
+  .spacer { flex:1; }
+  .meta { color:var(--dim); font-size:11px; }
+  .live { display:flex; align-items:center; gap:6px; font-size:11px; color:var(--dim); }
+  .beat { width:7px; height:7px; border-radius:99px; background:var(--ok); }
+  .beat.off { background:var(--faint); }
+  .beat.on { animation:beat 2s infinite; }
+  @keyframes beat { 50% { opacity:.2 } }
+
+  main { padding:16px; display:grid; gap:14px; max-width:1680px; margin:0 auto; }
+  .row { display:grid; gap:14px; }
+  .row.split { grid-template-columns:minmax(320px,1fr) minmax(320px,1.15fr); }
+  @media (max-width:1000px) { .row.split { grid-template-columns:1fr; } }
+
+  .card { background:var(--panel); border:1px solid var(--line); border-radius:9px;
+          overflow:hidden; }
+  .card > h2 { margin:0; padding:10px 13px; font-size:11px; letter-spacing:.8px;
+             text-transform:uppercase; color:var(--dim); border-bottom:1px solid var(--line);
+             display:flex; align-items:center; gap:10px; }
+  .card > h2 .cnt { color:var(--faint); font-weight:400; }
+  .card .body { padding:11px 13px; }
+  .scroll { overflow-x:auto; }
+  .vscroll { max-height:520px; overflow-y:auto; }
+
+  .tiles { display:grid; gap:11px; grid-template-columns:repeat(auto-fit,minmax(112px,1fr)); }
+  .tile { background:var(--panel); border:1px solid var(--line); border-radius:9px;
+          padding:12px 10px; text-align:center; cursor:pointer; transition:border-color .12s; }
+  .tile:hover { border-color:var(--accent); }
+  .tile.on { border-color:var(--accent); background:var(--panel2); }
+  .tile .n { font-size:26px; font-weight:700; line-height:1.15; }
+  .tile .k { font-size:10px; text-transform:uppercase; letter-spacing:.7px; color:var(--dim); }
+  .tile .sub { font-size:10px; color:var(--faint); margin-top:2px; }
+
+  table { width:100%; border-collapse:collapse; }
+  td, th { padding:6px 9px; text-align:left; vertical-align:top; }
+  thead th { position:sticky; top:0; background:var(--panel); z-index:1;
+             font-size:10px; text-transform:uppercase; letter-spacing:.6px;
+             color:var(--faint); font-weight:600; border-bottom:1px solid var(--line); }
+  tbody tr { border-top:1px solid var(--line); }
+  tbody tr:hover { background:var(--panel2); }
+  tbody tr.clickable { cursor:pointer; }
+  .sev { font-weight:700; font-size:10px; letter-spacing:.5px; white-space:nowrap; }
+  .c-critical{color:var(--crit)} .c-high{color:var(--high)} .c-medium{color:var(--med)}
+  .c-low{color:var(--low)} .c-ok{color:var(--ok)}
+  .tag { display:inline-block; padding:1px 6px; border-radius:5px; background:var(--panel2);
+         border:1px solid var(--line); font-size:10px; color:var(--dim); white-space:nowrap; }
+  .detail { color:var(--dim); word-break:break-word; }
+  .where { color:var(--faint); font-size:10.5px; word-break:break-all; margin-top:2px; }
+  .title { font-weight:600; }
+
+  .job { display:flex; align-items:center; gap:9px; padding:7px 0;
+         border-top:1px solid var(--line); }
+  .job:first-child { border-top:0; }
+  .dot { width:8px; height:8px; border-radius:99px; flex:none; background:var(--ok); }
+  .dot.stale { background:var(--med); } .dot.err { background:var(--crit); }
+  .dot.never { background:var(--crit); }
+  .dot.run { background:var(--accent); animation:beat 1s infinite; }
+  .job .name { flex:1; min-width:0; }
+  .job .name b { font-weight:600; }
+  .job .age { color:var(--faint); font-size:10.5px; white-space:nowrap; }
+  .bar { height:3px; background:var(--panel2); border-radius:2px; margin-top:3px;
+         overflow:hidden; }
+  .bar i { display:block; height:100%; background:var(--accent); }
+
+  button, select, input {
+    font:inherit; font-size:11px; padding:3px 9px; border-radius:6px;
+    background:var(--panel2); color:var(--fg); border:1px solid var(--line);
+  }
+  button { cursor:pointer; }
+  button:hover { border-color:var(--accent); color:var(--accent); }
+  button.on { background:var(--accent); color:#fff; border-color:var(--accent); }
+  input[type=search] { min-width:190px; }
+  input[type=search]:focus, select:focus { outline:1px solid var(--accent); }
+  .filters { display:flex; gap:5px; flex-wrap:wrap; align-items:center; }
+
+  .empty { color:var(--dim); padding:22px; text-align:center; }
+  .errbox { color:var(--crit); font-size:10.5px; white-space:pre-wrap;
+            padding:2px 0 6px 17px; }
+
+  .chart { display:flex; align-items:flex-end; gap:2px; height:70px; }
+  .chart .col { flex:1; min-width:2px; display:flex; flex-direction:column-reverse;
+                border-radius:1px 1px 0 0; overflow:hidden; }
+  .chart .col i { display:block; width:100%; }
+
+  .expand { background:var(--panel2); }
+  .expand td { padding:9px 12px; }
+  .kv { display:grid; grid-template-columns:max-content 1fr; gap:2px 14px; }
+  .kv dt { color:var(--faint); font-size:10.5px; text-transform:uppercase;
+           letter-spacing:.5px; }
+  .kv dd { margin:0; word-break:break-word; }
+
+  .legend { display:flex; gap:10px; flex-wrap:wrap; font-size:10.5px; color:var(--dim); }
+  .legend i { display:inline-block; width:8px; height:8px; border-radius:2px;
+              margin-right:4px; }
+  .tabs { display:flex; gap:4px; }
+  .catgrid { display:grid; gap:5px; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); }
+  .catgrid div { display:flex; justify-content:space-between; gap:8px; padding:3px 7px;
+                 background:var(--panel2); border-radius:5px; font-size:11px; }
+  kbd { background:var(--panel2); border:1px solid var(--line); border-radius:4px;
+        padding:0 4px; font-size:10px; }
+  .intel-head { padding:8px 10px; font-size:12px; color:var(--dim);
+                border-bottom:1px solid var(--line); }
+  .intel-head b { color:var(--fg); }
+  .kindrow { display:flex; flex-wrap:wrap; gap:4px; padding:8px 10px; }
+  .kindrow .tag b { color:var(--fg); }
+  h3.sub { margin:10px 10px 4px; font-size:11px; text-transform:uppercase;
+           letter-spacing:.08em; color:var(--faint); font-weight:600; }
+</style>
+</head>
+<body>
+<header>
+  <span class="brand">Jarvis Origin</span>
+  <span id="status" class="status s-ok">—</span>
+  <span class="live"><span id="beat" class="beat on"></span><span id="livetxt">live</span></span>
+  <button id="pause" onclick="togglePause()">pause</button>
+  <button id="voice" onclick="toggleVoice()" title="Spoken security briefing (press v to re-brief)">🔊 voice</button>
+  <button onclick="runAll()">run all</button>
+  <span class="spacer"></span>
+  <input type="search" id="q" placeholder="search findings…  ( / )" oninput="onSearch()">
+  <span class="meta" id="meta">connecting…</span>
+</header>
+
+<main>
+  <div class="tiles" id="tiles"></div>
+
+  <div class="row split">
+    <div class="card">
+      <h2>Collectors <span class="cnt" id="jobcnt"></span></h2>
+      <div class="body" id="jobs"></div>
+    </div>
+    <div class="card">
+      <h2>Findings over the last 24 hours</h2>
+      <div class="body">
+        <div class="chart" id="chart"></div>
+        <div class="legend" style="margin-top:9px">
+          <span><i style="background:var(--crit)"></i>critical</span>
+          <span><i style="background:var(--high)"></i>high</span>
+          <span><i style="background:var(--med)"></i>medium</span>
+          <span><i style="background:var(--low)"></i>low</span>
+          <span class="spacer"></span>
+          <span id="chartmeta"></span>
+        </div>
+        <div class="catgrid" id="cats" style="margin-top:11px"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>
+      <span>Findings</span>
+      <span class="cnt" id="findcnt"></span>
+      <span class="spacer" style="flex:1"></span>
+      <span class="filters" id="filters"></span>
+    </h2>
+    <div class="body" style="border-bottom:1px solid var(--line);padding:8px 13px">
+      <span class="filters">
+        <select id="jobsel" onchange="onFilter()"><option value="">all collectors</option></select>
+        <select id="hostsel" onchange="onFilter()">
+          <option value="">both hosts</option><option value="win">windows</option>
+          <option value="wsl">wsl</option>
+        </select>
+        <button id="grp" onclick="toggleGroup()">group by collector</button>
+        <span class="meta" id="filtermeta"></span>
+      </span>
+    </div>
+    <div class="scroll vscroll" id="findings"></div>
+  </div>
+
+  <div class="row split">
+    <div class="card">
+      <h2>Verified clean <span class="cnt" id="checkcnt"></span></h2>
+      <div class="scroll vscroll" id="checks"></div>
+    </div>
+    <div class="card">
+      <h2>
+        <span class="tabs">
+          <button id="tab-peers" class="on" onclick="setTab('peers')">public peers</button>
+          <button id="tab-events" onclick="setTab('events')">alert history</button>
+          <button id="tab-intel" onclick="setTab('intel')">threat intel</button>
+          <button id="tab-ops" onclick="setTab('ops')">ops &amp; setup</button>
+        </span>
+      </h2>
+      <div class="scroll vscroll" id="side"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Database</h2>
+    <div class="body meta" id="dbinfo"></div>
+  </div>
+</main>
+
+<script>
+"use strict";
+const SEV = ["critical", "high", "medium", "low"];
+let state = null, sevFilter = null, jobFilter = "", hostFilter = "",
+    query = "", grouped = false, paused = false, tab = "peers",
+    open = new Set(), timer = null;
+
+const esc = s => String(s ?? "").replace(/[&<>"']/g,
+  c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+function ago(ts) {
+  if (!ts) return "never";
+  const d = Math.max(0, Math.floor(Date.now() / 1000 - ts));
+  if (d < 60) return d + "s ago";
+  if (d < 3600) return Math.floor(d / 60) + "m ago";
+  if (d < 86400) return Math.floor(d / 3600) + "h ago";
+  return Math.floor(d / 86400) + "d ago";
+}
+function dur(s) {
+  if (s < 60) return Math.round(s) + "s";
+  if (s < 3600) return Math.round(s / 60) + "m";
+  return Math.round(s / 3600) + "h";
+}
+
+/* ---------- filtering ---------- */
+function visible() {
+  if (!state) return [];
+  const q = query.trim().toLowerCase();
+  return (state.findings || []).filter(f =>
+    (!sevFilter || f.severity === sevFilter) &&
+    (!jobFilter || f.job === jobFilter) &&
+    (!hostFilter || f.host === hostFilter) &&
+    (!q || (f.title + " " + f.detail + " " + (f.where || "") + " " + f.category)
+             .toLowerCase().includes(q)));
+}
+
+/* ---------- rendering ---------- */
+function render(s) {
+  state = s;
+
+  const st = document.getElementById("status");
+  st.textContent = s.worst === "ok" ? "all clear" : s.worst;
+  st.className = "status s-" + s.worst;
+
+  document.getElementById("meta").textContent =
+    `updated ${new Date().toLocaleTimeString()}`;
+
+  renderTiles(s);
+  renderJobs(s);
+  renderChart(s);
+  renderCats(s);
+  renderFilters(s);
+  renderFindings();
+  renderChecks(s);
+  renderSide(s);
+  voiceBrief(s, false);
+
+  const b = s.baseline_at ? ago(Number(s.baseline_at)) : "never";
+  document.getElementById("dbinfo").innerHTML =
+    `${esc(s.db)} &nbsp;·&nbsp; baseline learned ${esc(b)} &nbsp;·&nbsp; ` +
+    `${s.stats.procs} fingerprints (${s.stats.approved} approved) &nbsp;·&nbsp; ` +
+    `${s.stats.peers} peers seen (${s.stats.peers_public} public) &nbsp;·&nbsp; ` +
+    `${s.stats.events} alerts recorded` +
+    `<br><span style="color:var(--faint)">shortcuts: ` +
+    `<kbd>/</kbd> search &nbsp; <kbd>r</kbd> refresh &nbsp; <kbd>space</kbd> pause ` +
+    `&nbsp; <kbd>v</kbd> speak briefing &nbsp; <kbd>esc</kbd> clear filters</span>`;
+}
+
+function renderTiles(s) {
+  const hostBits = h => {
+    const t = s.by_host[h];
+    if (!t) return "";
+    return SEV.filter(k => t[k]).map(k => `${t[k]}${k[0]}`).join(" ") || "clean";
+  };
+  const live = s.jobs.filter(j => j.ts && !j.error && !j.stale).length;
+  document.getElementById("tiles").innerHTML =
+    SEV.map(k => `
+      <div class="tile ${sevFilter === k ? "on" : ""}" onclick="setSev('${k}')">
+        <div class="n c-${k}">${s.totals[k] || 0}</div>
+        <div class="k">${k}</div>
+      </div>`).join("") + `
+    <div class="tile ${sevFilter === null ? "on" : ""}" onclick="setSev(null)">
+      <div class="n">${s.findings_total}</div><div class="k">all findings</div>
+      <div class="sub">click to clear filter</div>
+    </div>
+    <div class="tile">
+      <div class="n c-ok">${(s.checks || []).length}</div>
+      <div class="k">verified clean</div>
+      <div class="sub">checks that passed</div>
+    </div>
+    <div class="tile">
+      <div class="n ${live === s.jobs.length ? "c-ok" : "c-high"}">${live}/${s.jobs.length}</div>
+      <div class="k">collectors ok</div>
+      <div class="sub">fresh &amp; error-free</div>
+    </div>
+    <div class="tile ${hostFilter === "win" ? "on" : ""}" onclick="setHost('win')">
+      <div class="n" style="font-size:17px;padding-top:6px">${esc(hostBits("win"))}</div>
+      <div class="k">windows</div>
+    </div>
+    <div class="tile ${hostFilter === "wsl" ? "on" : ""}" onclick="setHost('wsl')">
+      <div class="n" style="font-size:17px;padding-top:6px">${esc(hostBits("wsl"))}</div>
+      <div class="k">wsl</div>
+    </div>`;
+}
+
+function renderJobs(s) {
+  document.getElementById("jobcnt").textContent =
+    `${s.jobs.length} · one at a time`;
+  document.getElementById("jobs").innerHTML = s.jobs.map(j => {
+    const cls = j.running ? "run" : j.error ? "err"
+              : !j.ts ? "never" : j.stale ? "stale" : "";
+    const counts = SEV.filter(k => j.counts[k])
+      .map(k => `<span class="c-${k}">${j.counts[k]}${k[0]}</span>`).join(" ");
+    const okb = j.ok ? `<span class="c-ok">${j.ok}✓</span>` : "";
+    // progress toward the next scheduled run
+    const pct = j.interval
+      ? Math.max(0, Math.min(100, 100 - (j.next / j.interval) * 100)) : 0;
+    return `<div class="job">
+      <span class="dot ${cls}" title="${esc(cls || "healthy")}"></span>
+      <span class="name">
+        <b>${esc(j.label)}</b> ${counts} ${okb}
+        <div class="bar"><i style="width:${pct.toFixed(0)}%"></i></div>
+      </span>
+      <span class="age">${j.running ? "running…"
+        : ago(j.ts) + (j.duration ? " · " + j.duration + "s" : "")}
+        <br><span style="color:var(--faint)">every ${dur(j.interval)}${
+          j.next > 0 && !j.running ? " · next " + dur(j.next) : ""}</span></span>
+      <button onclick="runJob('${esc(j.name)}')">run</button>
+    </div>` + (j.error
+      ? `<div class="errbox">${esc(j.error.trim().split("\n").pop())}</div>` : "");
+  }).join("");
+}
+
+function renderChart(s) {
+  const h = s.history || [];
+  const max = Math.max(1, ...h.map(p => p.critical + p.high + p.medium + p.low));
+  document.getElementById("chart").innerHTML = h.length
+    ? h.map(p => {
+        const seg = SEV.map(k => {
+          const v = p[k] || 0;
+          return v ? `<i style="height:${(v / max * 70).toFixed(1)}px;
+                       background:var(--${k === "critical" ? "crit"
+                         : k === "high" ? "high" : k === "medium" ? "med" : "low"})"></i>` : "";
+        }).join("");
+        const tot = p.critical + p.high + p.medium + p.low;
+        return `<div class="col" title="${new Date(p.ts * 1000).toLocaleTimeString()} — ${
+          tot} findings (${p.critical}c ${p.high}h ${p.medium}m ${p.low}l)">${seg}</div>`;
+      }).join("")
+    : `<div class="empty" style="flex:1">no history yet</div>`;
+  document.getElementById("chartmeta").textContent =
+    h.length ? `${h.length} samples · 15-minute buckets` : "";
+}
+
+function renderCats(s) {
+  const c = s.by_category || {};
+  const keys = Object.keys(c).sort((a, b) => c[b] - c[a]).slice(0, 12);
+  document.getElementById("cats").innerHTML = keys.map(k =>
+    `<div><span>${esc(k)}</span><b>${c[k]}</b></div>`).join("");
+}
+
+function renderFilters(s) {
+  document.getElementById("filters").innerHTML =
+    [["all", null], ...SEV.map(k => [k, k])].map(([label, k]) =>
+      `<button class="${sevFilter === k ? "on" : ""}" onclick="setSev(${
+        k ? `'${k}'` : "null"})">${label}</button>`).join("");
+
+  const sel = document.getElementById("jobsel");
+  const want = s.jobs.map(j => j.name);
+  if (sel.options.length !== want.length + 1) {
+    sel.innerHTML = `<option value="">all collectors</option>` +
+      s.jobs.map(j => `<option value="${esc(j.name)}">${esc(j.label)}</option>`).join("");
+  }
+  sel.value = jobFilter;
+  document.getElementById("hostsel").value = hostFilter;
+  document.getElementById("grp").className = grouped ? "on" : "";
+}
+
+function findingRow(f, i) {
+  const id = "f" + i;
+  const isOpen = open.has(id);
+  return `<tr class="clickable" onclick="toggle('${id}')">
+      <td class="sev c-${f.severity}">${f.severity.toUpperCase()}</td>
+      <td><span class="tag">${esc(f.job)}</span></td>
+      <td><span class="tag">${esc(f.host || "?")}</span></td>
+      <td>
+        <div class="title">${esc(f.title)}</div>
+        <div class="detail">${esc(f.detail)}</div>
+        ${f.where && !isOpen ? `<div class="where">${esc(f.where)}</div>` : ""}
+      </td>
+    </tr>` + (isOpen ? `<tr class="expand"><td colspan="4"><dl class="kv">
+        <dt>category</dt><dd>${esc(f.category || "—")}</dd>
+        <dt>collector</dt><dd>${esc(f.job)}</dd>
+        <dt>host</dt><dd>${esc(f.host || "—")}</dd>
+        <dt>location</dt><dd>${esc(f.where || "—")}</dd>
+        <dt>detail</dt><dd>${esc(f.detail)}</dd>
+      </dl></td></tr>` : "");
+}
+
+function renderFindings() {
+  const rows = visible();
+  document.getElementById("findcnt").textContent =
+    `${rows.length}${rows.length !== state.findings_total ? " of " + state.findings_total : ""}`;
+  document.getElementById("filtermeta").textContent =
+    (sevFilter || jobFilter || hostFilter || query)
+      ? "filtered — press esc to clear" : "click any row for full detail";
+
+  const head = `<table><thead><tr>
+      <th style="width:74px">Severity</th><th style="width:92px">Collector</th>
+      <th style="width:52px">Host</th><th>What was found</th>
+    </tr></thead><tbody>`;
+
+  if (!rows.length) {
+    document.getElementById("findings").innerHTML =
+      `<div class="empty">nothing matches these filters</div>`;
+    return;
+  }
+  let html;
+  if (grouped) {
+    const by = {};
+    rows.forEach((f, i) => (by[f.job] = by[f.job] || []).push([f, i]));
+    html = Object.keys(by).sort().map(job =>
+      head + `<tr><td colspan="4" style="background:var(--panel2);font-weight:700">
+        ${esc(job)} <span class="cnt" style="color:var(--faint)">${by[job].length}</span>
+        </td></tr>` +
+      by[job].map(([f, i]) => findingRow(f, i)).join("") + `</tbody></table>`).join("");
+  } else {
+    html = head + rows.map((f, i) => findingRow(f, i)).join("") + `</tbody></table>`;
+  }
+  document.getElementById("findings").innerHTML = html;
+}
+
+function renderChecks(s) {
+  const c = s.checks || [];
+  document.getElementById("checkcnt").textContent = `${c.length} checks passed`;
+  document.getElementById("checks").innerHTML = c.length ? `
+    <table><thead><tr>
+      <th style="width:92px">Collector</th><th style="width:46px">Host</th><th>Confirmed</th>
+    </tr></thead><tbody>${c.map(f => `
+      <tr>
+        <td><span class="tag">${esc(f.job)}</span></td>
+        <td><span class="tag">${esc(f.host || "?")}</span></td>
+        <td>
+          <div class="title c-ok">${esc(f.title)}</div>
+          <div class="detail">${esc(f.detail)}</div>
+        </td>
+      </tr>`).join("")}</tbody></table>`
+    : `<div class="empty">no checks have reported a clean result yet</div>`;
+}
+
+function renderIntel(s) {
+  const it = s.intel || { total: 0, kinds: {}, feeds: [], hits: [] };
+  const kinds = Object.entries(it.kinds || {});
+  // A hunt that finds nothing only means something if the knowledge base
+  // behind it is current, so freshness is shown next to the counts.
+  const stale = f => !f.last_run ? "never"
+    : (s.now - f.last_run > 172800 ? "stale" : ago(f.last_run));
+  document.getElementById("side").innerHTML = `
+    <div class="intel-head">
+      <b>${it.total.toLocaleString()}</b> live indicators
+      from <b>${(it.docs || 0).toLocaleString()}</b> writeups
+      &nbsp;·&nbsp; hunted ${it.last_hunt ? ago(it.last_hunt) : "never"}
+      &nbsp;·&nbsp; refreshed ${it.last_refresh ? ago(it.last_refresh) : "never"}
+      &nbsp;·&nbsp; api spend $${(it.spend_total || 0).toFixed(2)}
+      (today $${(it.spend_today || 0).toFixed(2)})
+    </div>
+    <div class="kindrow">${kinds.map(([k, n]) =>
+      `<span class="tag">${esc(k)} <b>${n.toLocaleString()}</b></span>`).join("")}</div>
+    ${(it.hits || []).length ? `
+      <h3 class="sub">recent indicator matches</h3>
+      <table><thead><tr>
+        <th style="width:74px">Severity</th><th style="width:92px">When</th>
+        <th>Match</th>
+      </tr></thead><tbody>${it.hits.map(h => `
+        <tr>
+          <td class="sev c-${esc(h.severity)}">${esc(String(h.severity).toUpperCase())}</td>
+          <td class="detail">${ago(h.ts)}</td>
+          <td><div class="title">${esc(h.value)}</div>
+              <div class="where">${esc(h.evidence || "")}</div></td>
+        </tr>`).join("")}</tbody></table>`
+      : `<div class="empty">no indicator has matched this machine</div>`}
+    <h3 class="sub">feeds</h3>
+    <table><thead><tr>
+      <th>Feed</th><th style="width:80px">Records</th><th style="width:90px">Updated</th>
+    </tr></thead><tbody>${(it.feeds || []).map(f => `
+      <tr>
+        <td>${esc(f.name)}${f.error
+          ? `<div class="where c-high">${esc(f.error)}</div>` : ""}</td>
+        <td class="detail">${(f.kept || 0).toLocaleString()}</td>
+        <td class="detail">${stale(f)}</td>
+      </tr>`).join("")}</tbody></table>`;
+}
+
+function renderSide(s) {
+  if (tab === "intel") { renderIntel(s); return; }
+  if (tab === "ops") { renderOps(s); return; }
+  if (tab === "peers") {
+    const p = s.peers || [];
+    document.getElementById("side").innerHTML = p.length ? `
+      <table><thead><tr>
+        <th>Remote</th><th style="width:46px">Host</th><th style="width:48px">Seen</th>
+        <th style="width:92px">Last</th><th>Process</th>
+      </tr></thead><tbody>${p.map(x => `
+        <tr>
+          <td>${esc(x.remote_ip)}:${esc(x.remote_port)}${
+            x.rdns ? `<div class="where">${esc(x.rdns)}</div>` : ""}</td>
+          <td><span class="tag">${esc(x.host)}</span></td>
+          <td class="detail">${esc(x.seen_count)}</td>
+          <td class="detail">${ago(x.last_seen)}</td>
+          <td class="detail">${esc(x.pname || "—")}</td>
+        </tr>`).join("")}</tbody></table>`
+      : `<div class="empty">no public peers recorded yet</div>`;
+  } else {
+    const e = s.events || [];
+    document.getElementById("side").innerHTML = e.length ? `
+      <table><thead><tr>
+        <th style="width:74px">Severity</th><th style="width:92px">When</th>
+        <th style="width:46px">Host</th><th>Process</th>
+      </tr></thead><tbody>${e.map(x => `
+        <tr>
+          <td class="sev c-${esc(x.severity)}">${esc(String(x.severity).toUpperCase())}</td>
+          <td class="detail">${ago(x.ts)}</td>
+          <td><span class="tag">${esc(x.host)}</span></td>
+          <td>
+            <div class="title">${esc(x.name)} <span class="detail">[${esc(x.pid)}]</span></div>
+            <div class="where">${esc(x.cmdline || x.exe || "")}</div>
+          </td>
+        </tr>`).join("")}</tbody></table>`
+      : `<div class="empty">no alerts recorded yet</div>`;
+  }
+}
+
+/* ---------- interaction ---------- */
+function setSev(k) { sevFilter = k; open.clear(); if (state) render(state); }
+function setHost(h) { hostFilter = hostFilter === h ? "" : h; open.clear(); if (state) render(state); }
+function onFilter() {
+  jobFilter = document.getElementById("jobsel").value;
+  hostFilter = document.getElementById("hostsel").value;
+  open.clear(); if (state) render(state);
+}
+function onSearch() {
+  query = document.getElementById("q").value; open.clear();
+  if (state) { renderFindings(); }
+}
+function toggleGroup() { grouped = !grouped; open.clear(); if (state) render(state); }
+function toggle(id) {
+  open.has(id) ? open.delete(id) : open.add(id);
+  renderFindings();
+}
+function setTab(t) {
+  tab = t;
+  for (const id of ["peers", "events", "intel", "ops"]) {
+    document.getElementById("tab-" + id).className = t === id ? "on" : "";
+  }
+  if (state) renderSide(state);
+}
+
+/* ---------- ops & setup: copy-paste command reference ---------- */
+function cp(el, text) {
+  navigator.clipboard.writeText(text).then(() => {
+    const was = el.textContent; el.textContent = "copied"; el.className = "on";
+    setTimeout(() => { el.textContent = was; el.className = ""; }, 1200);
+  }).catch(() => {});
+}
+function renderOps() {
+  const port = location.port || "8790";
+  const url = location.origin;
+  const groups = [
+    ["Install (run in WSL, from the checkout)", [
+      ["Put jarvis-origin on PATH", "./install.sh"],
+      ["Run it continuously as a user service", "./install.sh --service"],
+      ["Keep WSL running across Windows reboots", "./install.sh --windows"],
+    ]],
+    ["Service control", [
+      ["Status", "systemctl --user status jarvis-origin.service --no-pager"],
+      ["Restart", "systemctl --user restart jarvis-origin.service"],
+      ["Live logs", "journalctl --user -u jarvis-origin.service -f -o cat"],
+    ]],
+    ["Run a collector now", [
+      ["One job", `curl -fsS -X POST '${url}/api/run?job=hunt' -H 'Origin: ${url}'`],
+      ["Self-audit from the CLI", "jarvis-origin coverage"],
+      ["Everything at once", "jarvis-origin investigate"],
+    ]],
+    ["Health check", [
+      ["Are all collectors current?", `curl -fsS ${url}/api/state | python3 -c 'import json,sys,time; d=json.load(sys.stdin); j=d["jobs"]; print("stale:", [x["name"] for x in j if x.get("stale")] or "none"); print("errored:", [x["name"] for x in j if x.get("error")] or "none")'`],
+      ["Dashboard URL", url],
+      ["Port in use by", `ss -ltnp | grep ${port}`],
+    ]],
+  ];
+  document.getElementById("side").innerHTML =
+    `<div class="detail" style="padding:12px 12px 4px">Commands run on the host, not in the browser. Click a row to copy. Paths are relative to the Jarvis Origin checkout.</div>` +
+    groups.map(([name, rows]) => `
+      <div class="title" style="padding:10px 12px 4px">${esc(name)}</div>
+      <table><tbody>${rows.map(([label, cmd]) => `
+        <tr>
+          <td style="width:38%">${esc(label)}</td>
+          <td><code style="white-space:pre-wrap;word-break:break-all">${esc(cmd)}</code></td>
+          <td style="width:56px"><button onclick='cp(this, ${JSON.stringify(cmd)})'>copy</button></td>
+        </tr>`).join("")}</tbody></table>`).join("");
+}
+function clearAll() {
+  sevFilter = null; jobFilter = ""; hostFilter = ""; query = "";
+  document.getElementById("q").value = ""; open.clear();
+  if (state) render(state);
+}
+function togglePause() {
+  paused = !paused;
+  document.getElementById("pause").textContent = paused ? "resume" : "pause";
+  document.getElementById("pause").className = paused ? "on" : "";
+  document.getElementById("beat").className = "beat " + (paused ? "off" : "on");
+  document.getElementById("livetxt").textContent = paused ? "paused" : "live";
+  if (!paused) tick();
+}
+async function runJob(n) {
+  await fetch("/api/run?job=" + encodeURIComponent(n), { method: "POST" });
+  setTimeout(tick, 400);
+}
+async function runAll() {
+  if (!state) return;
+  for (const j of state.jobs) {
+    await fetch("/api/run?job=" + encodeURIComponent(j.name), { method: "POST" });
+  }
+  setTimeout(tick, 400);
+}
+
+/* ---------- spoken security briefing ----------
+   Speaks what a person watching this dashboard would want to hear without
+   reading it: threats that need action now, monitoring that broke, and new
+   high findings. Diffed against what was already said, so it stays quiet
+   until something changes. Press v to re-brief the full status on demand. */
+let voice = false, voicePrimed = false, spokenKeys = new Set(), lostConn = false;
+try { voice = localStorage.getItem("jarvis-origin.voice") === "1"; } catch (e) {}
+
+function say(text) {
+  if (!voice || !text || !window.speechSynthesis) return;
+  const u = new SpeechSynthesisUtterance(text);
+  u.rate = 1.06; u.lang = "en-US";
+  window.speechSynthesis.speak(u);
+}
+function firstClause(s) {
+  return String(s || "").split(/[—;]| - /)[0].trim().slice(0, 150);
+}
+/* Never voiced: coverage-gap accounting and standing config issues belong on
+   the screen, not read aloud every time the tab opens. */
+function isNoise(f) {
+  const c = (f.category || "").toLowerCase();
+  return f.job === "gaps" || f.job === "scan" ||
+    c === "coverage gap" || c === "not observable" || c === "visibility" || c === "limits" ||
+    /named in threat intelligence exists|deprecated or unrecognised/i.test(f.title || "");
+}
+/* Live, host-local, do-something-now. Matched by explicit job+pattern, not by
+   severity alone (a critical plaintext-secret finding is real but not urgent). */
+function tier1(f) {
+  const t = (f.title || "").toLowerCase(), c = (f.category || "").toLowerCase();
+  if (f.job === "input" && /inject|synthetic/.test(t) && f.severity !== "ok" && f.severity !== "low")
+    return "Synthetic input detected. " + firstClause(f.detail);
+  if (f.job === "controls" && /in use right now/.test(t))
+    return f.title + ". " + firstClause(f.detail);
+  if (c === "intel match" && f.severity === "critical")
+    return "Known-attacker indicator. " + f.title;
+  if (/\bspawned a shell\b|connect-back argument|reverse shell/.test(t))
+    return "Possible post-exploitation. " + f.title;
+  if (/owned by an invisible process|process is hidden from|invisible from the process/.test(t))
+    return "Hidden process. " + f.title + ". " + firstClause(f.detail);
+  if (c === "credential access")
+    return "Credential access. " + f.title;
+  if (/defender detected a threat/.test(t) && !/not active/i.test(f.detail || ""))
+    return "Active malware detection. " + firstClause(f.detail);
+  return null;
+}
+
+function voiceItems(s) {
+  const out = [], F = (s.findings || []).filter(f => !isNoise(f));
+  for (const f of F) {
+    const key = (f.job || "") + "|" + (f.title || "") + "|" + (f.where || "");
+    const a = tier1(f);
+    if (a) { out.push({ key, tier: 1, text: a }); continue; }
+    const t = (f.title || "").toLowerCase();
+    if (f.job === "controls" && /(changed|appeared|removed)/.test(t))
+      out.push({ key, tier: 3, text: "Control surface. " + f.title + ". " + firstClause(f.detail) });
+    else if (f.severity === "critical")
+      out.push({ key, tier: 3, kind: "crit", text: f.title || "" });
+    else if (f.severity === "high")
+      out.push({ key, tier: 3, kind: "high", text: f.title || "" });
+  }
+  for (const j of (s.jobs || [])) {
+    if (j.error) out.push({ key: "err|" + j.name, tier: 2,
+      text: "The " + j.name + " collector errored and is not reporting." });
+    else if (j.stale) out.push({ key: "stale|" + j.name, tier: 2,
+      text: "The " + j.name + " collector went stale and stopped producing results." });
+  }
+  const bridge = (s.jobs || []).find(j => j.name === "bridge");
+  if (bridge && (bridge.stale || bridge.error))
+    out.push({ key: "bridge-down", tier: 2, text: "Windows monitoring is offline. The bridge is down." });
+  if ((s.findings || []).some(f => /injected-input monitor is (down|not running|quiet)/i.test(f.title || "")))
+    out.push({ key: "hook-down", tier: 2, text: "The keystroke monitor is down. Synthetic input is not being watched." });
+  return out;
+}
+
+function statusLine(s) {
+  const jobs = s.jobs || [], F = (s.findings || []).filter(f => !isNoise(f));
+  const cur = jobs.filter(j => j.ts && !j.stale && !j.error).length;
+  const bad = jobs.filter(j => j.stale || j.error).map(j => j.name);
+  const crit = F.filter(f => f.severity === "critical").length;
+  const high = F.filter(f => f.severity === "high").length;
+  const acts = F.filter(f => tier1(f)).length;
+  const bridge = jobs.some(j => j.name === "bridge" && !j.stale && !j.error) ? "up" : "down";
+  const hook = F.some(f => /injected-input monitor is (down|not running|quiet)/i.test(f.title || "")) ? "down"
+             : (s.checks || []).some(f => /injected-input monitor is healthy/i.test(f.title || "")) ? "healthy" : "unknown";
+  const live = F.filter(f => /in use right now/i.test(f.title || ""))
+                .map(f => (f.title || "").replace(/ in use right now/i, "").trim());
+  let out = "Security status " + (s.worst === "ok" ? "all clear" : s.worst) + ". " +
+            cur + " of " + jobs.length + " collectors current";
+  if (bad.length) out += ", not reporting: " + bad.join(", ");
+  out += ". ";
+  out += acts ? (acts + " item" + (acts > 1 ? "s" : "") + " needing attention. ") : "Nothing live needs action. ";
+  out += crit + " critical, " + high + " high findings on the board. ";
+  out += "Windows bridge " + bridge + ". Keystroke monitor " + hook + ".";
+  if (live.length) out += " In use now: " + live.join(", ") + ".";
+  return out;
+}
+
+function voiceBrief(s, force) {
+  if (!voice || !s) return;
+  const items = voiceItems(s);
+  const present = new Set(items.map(i => i.key));
+  for (const k of [...spokenKeys]) if (!present.has(k)) spokenKeys.delete(k);
+
+  if (!voicePrimed && !force) {           // page opened with voice already on
+    items.forEach(i => spokenKeys.add(i.key));
+    voicePrimed = true;
+    return;
+  }
+  voicePrimed = true;
+  if (force) { window.speechSynthesis && window.speechSynthesis.cancel(); say(statusLine(s)); }
+
+  const fresh = items.filter(i => !spokenKeys.has(i.key)).sort((a, b) => a.tier - b.tier);
+  fresh.filter(i => i.tier < 3).forEach(i => say(i.text));
+
+  const ctl = fresh.filter(i => i.tier === 3 && !i.kind);
+  ctl.slice(0, 3).forEach(i => say(i.text));
+  if (ctl.length > 3) say((ctl.length - 3) + " more control-surface changes.");
+
+  const nc = fresh.filter(i => i.kind === "crit").length;
+  const nh = fresh.filter(i => i.kind === "high").length;
+  if (nc) say(nc + " new critical finding" + (nc > 1 ? "s" : "") + ". Check the dashboard.");
+  if (nh) say(nh + " new high finding" + (nh > 1 ? "s" : "") + ".");
+
+  fresh.forEach(i => spokenKeys.add(i.key));
+}
+
+function toggleVoice() {
+  voice = !voice;
+  try { localStorage.setItem("jarvis-origin.voice", voice ? "1" : "0"); } catch (e) {}
+  const b = document.getElementById("voice");
+  b.className = voice ? "on" : "";
+  b.textContent = voice ? "🔊 voice on" : "🔊 voice";
+  if (!voice) { window.speechSynthesis && window.speechSynthesis.cancel(); return; }
+  spokenKeys.clear(); voicePrimed = true;
+  if (state) voiceBrief(state, true);
+  else say("Voice briefing on. Waiting for data.");
+}
+(function () {
+  const b = document.getElementById("voice");
+  if (b && voice) { b.className = "on"; b.textContent = "🔊 voice on"; }
+})();
+
+document.addEventListener("keydown", e => {
+  if (e.target.tagName === "INPUT" || e.target.tagName === "SELECT") {
+    if (e.key === "Escape") { e.target.blur(); clearAll(); }
+    return;
+  }
+  if (e.key === "/") { e.preventDefault(); document.getElementById("q").focus(); }
+  else if (e.key === "r") tick();
+  else if (e.key === "v") { if (!voice) toggleVoice(); else voiceBrief(state, true); }
+  else if (e.key === " ") { e.preventDefault(); togglePause(); }
+  else if (e.key === "Escape") clearAll();
+});
+
+async function tick() {
+  if (paused) return;
+  try {
+    const r = await fetch("/api/state", { cache: "no-store" });
+    if (!r.ok) throw new Error(r.status);
+    render(await r.json());
+    if (lostConn) { lostConn = false; say("Reconnected to the Jarvis Origin daemon."); }
+  } catch (e) {
+    document.getElementById("meta").textContent = "daemon unreachable — retrying";
+    document.getElementById("beat").className = "beat off";
+    if (!lostConn) { lostConn = true; say("Lost connection to the Jarvis Origin daemon."); }
+  }
+}
+tick();
+timer = setInterval(tick, 5000);
+</script>
+</body>
+</html>

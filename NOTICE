@@ -1,0 +1,19 @@
+Jarvis Origin
+Copyright 2026 Archymedes
+
+This product is licensed under the Apache License, Version 2.0 (see LICENSE).
+It contains no third-party source code and depends only on the Python standard
+library.
+
+At run time, and only when the user runs or schedules the corresponding jobs,
+Jarvis Origin downloads data from third-party publishers. That data is not
+distributed with Jarvis Origin and remains subject to each publisher's terms:
+
+  MITRE ATT&CK (c) The MITRE Corporation — https://attack.mitre.org/resources/legal-and-branding/terms-of-use/
+  abuse.ch ThreatFox, MalwareBazaar, URLhaus, Feodo Tracker
+  CISA Known Exploited Vulnerabilities catalog
+  Spamhaus DROP, OpenPhish, Proofpoint Emerging Threats, blocklist.de,
+  CINS Army, Binary Defense, IPsum
+
+The optional Exa, OpenAI and Resend integrations use the user's own API keys
+and are governed by those services' terms.
