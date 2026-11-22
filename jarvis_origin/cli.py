@@ -503,7 +503,7 @@ def cmd_alert(args, store):
     if s["capped_at"]:
         print(color(f"last capped   {iso(s['capped_at'])}", "medium", t))
     if s["outages"]:
-        print(color("ACTIVE OUTAGES — Jarvis Origin is not watching something:", "high", t))
+        print(color("ACTIVE OUTAGES — JARVIS-1 is not watching something:", "high", t))
         for k in s["outages"]:
             print(color(f"  ! {k.replace('|', ' — ')}", "high", t))
     if s["active"]:
@@ -669,7 +669,7 @@ def build_parser():
     a.add_argument("--note", default="")
     a.set_defaults(fn=cmd_approve)
 
-    st = sub.add_parser("status", help="show what Jarvis Origin knows so far")
+    st = sub.add_parser("status", help="show what JARVIS-1 knows so far")
     st.set_defaults(fn=cmd_status)
 
 

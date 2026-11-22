@@ -1,8 +1,9 @@
-# Jarvis Origin
+# JARVIS-1
 
-**Where ARGUS-1 began.** Jarvis Origin is the first version of the monitor that
-grew into ARGUS-1, opened up as a reference for anyone building honest host
-security tooling.
+**The first version of JARVIS-1.** This is where the monitor began, opened up
+as a reference for anyone building honest host security tooling. The command
+and package keep the name this repository was published under
+(`jarvis-origin`, `jarvis_origin`), so existing installs keep working.
 
 A small, dependency-free host monitor for **WSL2 + Windows** machines. It watches
 what runs and where it connects, notices keyboard and mouse input that no human
@@ -105,7 +106,7 @@ article text to parse. The API key lives in `~/.jarvis-origin/config.json` at mo
 
 ### Why none of it is trusted
 
-This is the only part of Jarvis Origin that takes input from the internet, and it does
+This is the only part of JARVIS-1 that takes input from the internet, and it does
 so in a security tool whose entire value is being right about what is running.
 Two things are wrong with the input by construction: the articles are written by
 strangers, and the extraction is done by a language model that fills empty
@@ -139,7 +140,7 @@ were in force the day it was fetched.
 
 ### Turning knowledge into a check
 
-`hunt` only compares against state Jarvis Origin already collects, so it is cheap
+`hunt` only compares against state JARVIS-1 already collects, so it is cheap
 enough to run every half hour:
 
 | indicator | checked against | severity on match |
@@ -165,12 +166,12 @@ drops.
 
 ATT&CK technique ids cannot be "found" on a host, so they are used differently.
 `gaps` compares the techniques current research is discussing against the
-techniques Jarvis Origin's collectors actually cover, and reports the difference,
+techniques JARVIS-1's collectors actually cover, and reports the difference,
 weighted by how many independent writeups raised each one. A technique three
 teams wrote about this year is a better use of an afternoon than one mentioned
 once.
 
-This is the counterpart to `coverage`. `coverage` asks whether Jarvis Origin is
+This is the counterpart to `coverage`. `coverage` asks whether JARVIS-1 is
 running; `gaps` asks whether it is looking at the right things — and answers
 with a work queue rather than a warning.
 
@@ -287,7 +288,7 @@ as milliseconds on every movement.
 
 So the hook measures it rather than guessing — the delta between when Windows
 generated an event and when this hook received it, reported as average, peak,
-and the share of events over 50 ms. Jarvis Origin's own hook is in that chain and
+and the share of events over 50 ms. JARVIS-1's own hook is in that chain and
 contributes part of the figure, which is why the finding says so and tells you
 to stop it and re-measure.
 
@@ -336,7 +337,7 @@ over HTTPS, standard library only. Put this in `~/.jarvis-origin/config.json` (k
 ```json
 {
   "resend_api_key": "re_...",
-  "alert_from": "Jarvis Origin <jarvis-origin@yourdomain.com>",
+  "alert_from": "JARVIS-1 <jarvis-origin@yourdomain.com>",
   "alert_to": "you@example.com",
   "alert_min_severity": "high",
   "alert_resend_after": 21600,
@@ -358,7 +359,7 @@ it is only ever sent in the `Authorization` header of the one request to
 
 Every finding has a stable key, so an alert pages you once when it fires, again
 after `alert_resend_after` if it is *still* firing, and once when it clears —
-not on every 45-second watchdog tick. Findings that mean "Jarvis Origin itself is not
+not on every 45-second watchdog tick. Findings that mean "JARVIS-1 itself is not
 watching something" page regardless of `alert_min_severity`, because a
 monitoring gap is the one class of finding whose whole point is that nothing
 else will tell you. `alert_hourly_cap` is a hard ceiling; anything past it is
@@ -374,7 +375,7 @@ copied into routine email.
 
 The HTML report is deterministic by default. For an additional evidence-bound
 AI assessment, add paid OpenAI API credits and configure `advisory_model` plus
-`openai_api_key` (or provide `JARVIS_ORIGIN_OPENAI_KEY` to the service). Jarvis Origin uses
+`openai_api_key` (or provide `JARVIS_ORIGIN_OPENAI_KEY` to the service). JARVIS-1 uses
 the Responses API with storage disabled and sends only redacted findings—never
 credential values or raw process command lines. If credits, model access, or
 the API are unavailable, the report says so and the deterministic report still
@@ -487,11 +488,12 @@ are welcome under the Developer Certificate of Origin; see
 [CONTRIBUTING.md](CONTRIBUTING.md). Please report vulnerabilities privately as
 described in [SECURITY.md](SECURITY.md).
 
-The public feeds and APIs Jarvis Origin can query are downloaded at run time on
+The public feeds and APIs JARVIS-1 can query are downloaded at run time on
 your machine and are governed by their publishers' own terms; check them before
 any commercial use.
 
 ---
 
-Jarvis Origin is maintained by the makers of ARGUS-1. It is the starting point,
-not the product: ARGUS-1 is developed separately and is not open source.
+JARVIS-1 is maintained by Archymedes. This repository is its first version
+and the starting point; the current JARVIS-1 is developed in a separate
+repository.

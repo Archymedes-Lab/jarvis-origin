@@ -13,7 +13,7 @@ enough to be certain, not just to be broad.
 """
 
 
-# Only findings Jarvis Origin itself raises have a rule here: the bridge and the
+# Only findings JARVIS-1 itself raises have a rule here: the bridge and the
 # daemon's own health (coverage.py).
 _RULES = [
     (lambda t, d, w: "interop bridge" in t.lower() or "bridge is down" in d.lower(),

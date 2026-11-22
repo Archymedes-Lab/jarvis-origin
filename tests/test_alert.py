@@ -45,11 +45,11 @@ class AdvisoryReportTests(unittest.TestCase):
     def test_sender_always_uses_jarvis_display_name(self):
         self.assertEqual(
             alert.branded_sender({"alert_from": "jarvis-origin@example.test"}),
-            "Jarvis Origin <jarvis-origin@example.test>",
+            "JARVIS-1 <jarvis-origin@example.test>",
         )
         self.assertEqual(
             alert.branded_sender({"alert_from": "Old Name <alerts@example.test>"}),
-            "Jarvis Origin <alerts@example.test>",
+            "JARVIS-1 <alerts@example.test>",
         )
 
     def test_report_prioritizes_actions_and_keeps_process_details_local(self):
@@ -91,10 +91,10 @@ class AdvisoryReportTests(unittest.TestCase):
             result = alert.advisory_report(self.store, jobs)
 
         self.assertEqual(result[0]["severity"], "ok")
-        self.assertTrue(sent["subject"].startswith("[Jarvis Origin]"))
+        self.assertTrue(sent["subject"].startswith("[JARVIS-1]"))
         self.assertIn("5-hour security report", sent["subject"])
-        self.assertIn("Jarvis Origin FIVE-HOUR SECURITY ADVISORY", sent["body"])
-        self.assertIn("Jarvis Origin · FIVE-HOUR SECURITY ADVISORY", sent["html"])
+        self.assertIn("JARVIS-1 FIVE-HOUR SECURITY ADVISORY", sent["body"])
+        self.assertIn("JARVIS-1 · FIVE-HOUR SECURITY ADVISORY", sent["html"])
         self.assertIn("SECURE NEXT", sent["body"])
         self.assertIn("interop bridge is down", sent["body"])
         self.assertIn("wsl --shutdown", sent["body"])

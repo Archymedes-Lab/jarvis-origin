@@ -10,7 +10,7 @@ Config, all under ~/.jarvis-origin/config.json (kept 0600), or the noted env var
 
     resend_api_key      "re_..."            (or $JARVIS_ORIGIN_RESEND_KEY)
     alert_to            "you@example.com"   or ["a@x.com", "b@y.com"]
-    alert_from          "Jarvis Origin <jarvis-origin@yourdomain.com>"  a verified sender
+    alert_from          "JARVIS-1 <jarvis-origin@yourdomain.com>"  a verified sender
     alert_min_severity  "high"              critical | high | medium
     alert_resend_after  21600               seconds a still-firing alert waits
                                             before it pages again
@@ -124,11 +124,11 @@ def enabled(conf):
 
 
 def branded_sender(conf):
-    """Keep the configured verified address while presenting the Jarvis Origin name."""
+    """Keep the configured verified address while presenting the JARVIS-1 name."""
     sender = (conf.get("alert_from") or "").strip()
     match = re.search(r"<([^<>]+)>", sender)
     address = match.group(1).strip() if match else sender
-    return f"Jarvis Origin <{address}>"
+    return f"JARVIS-1 <{address}>"
 
 
 def status(store):
@@ -191,7 +191,7 @@ def send_email(conf, subject, text, html=None):
 
     for i in range(attempts):
         if i:
-            # Full jitter on an exponential backoff. Jarvis Origin's outage mail and a
+            # Full jitter on an exponential backoff. JARVIS-1's outage mail and a
             # transient DNS or TLS failure must not become a tight retry loop
             # against api.resend.com — that is how a key gets rate-limited
             # exactly when it is needed.
@@ -233,8 +233,8 @@ def test(store):
     if not enabled(conf):
         return "alerts are not configured — set resend_api_key, alert_from and " \
                "alert_to in " + CONFIG_PATH
-    err = send_email(conf, "[Jarvis Origin] test alert",
-                     "This is a test from Jarvis Origin (`jarvis-origin alert --test`).\n"
+    err = send_email(conf, "[JARVIS-1] test alert",
+                     "This is a test from JARVIS-1 (`jarvis-origin alert --test`).\n"
                      "If you got this, outage alerts will reach you too.\n")
     if not err:
         _record_send(store)
@@ -260,7 +260,7 @@ def _next_action(f):
     suggestion = fixit.suggest(f)
     if suggestion:
         return suggestion
-    where = f.get("where") or "the Jarvis Origin dashboard"
+    where = f.get("where") or "the JARVIS-1 dashboard"
     return (f"inspect the evidence at {where}; verify the affected component "
             f"before changing it")
 
@@ -392,7 +392,7 @@ def _report_html(health, findings, actionable, blind_spots, checks,
     return f"""<!doctype html><html><head><meta charset='utf-8'></head>
 <body style='margin:0;background:#f2f4f7;color:#101828;font-family:Segoe UI,Arial,sans-serif'>
 <style>.wrap{{max-width:760px;margin:auto;background:#fff}}.hero{{padding:30px;background:#101828;color:#fff}}.hero p{{color:#d0d5dd}}.section{{padding:24px 30px;border-bottom:1px solid #eaecf0}}.cards{{display:flex;gap:10px;flex-wrap:wrap}}.card{{padding:12px 16px;background:#f9fafb;border:1px solid #eaecf0;border-radius:10px;min-width:110px}}.card b{{display:block;font-size:22px}}h2{{margin:0 0 14px}}h3{{margin:22px 0 8px}}.action{{display:flex;gap:12px;padding:14px 0;border-top:1px solid #eaecf0}}.num{{width:28px;height:28px;border-radius:50%;background:#101828;color:white;text-align:center;line-height:28px;flex:none}}.next{{color:#067647;margin-top:5px}}.why,.finding p{{color:#475467;margin:5px 0}}.finding{{padding:12px;border:1px solid #eaecf0;border-radius:8px;margin:8px 0}}.sev{{color:white;font-size:10px;font-weight:700;padding:3px 7px;border-radius:12px;margin-right:8px}}small{{color:#667085}}.notice{{padding:15px;background:#fffaeb;border:1px solid #fedf89;border-radius:8px}}.ai{{padding:18px;background:#f4f3ff;border-radius:8px}}.pre{{white-space:pre-wrap;line-height:1.5}}ul{{padding-left:20px}}li{{margin:7px 0}}</style>
-<div class='wrap'><div class='hero'><div style='font-size:12px;letter-spacing:1.5px'>Jarvis Origin · FIVE-HOUR SECURITY ADVISORY</div><h1 style='margin:8px 0'>Your system security, prioritized</h1><p>Generated {esc(time.strftime('%Y-%m-%d %H:%M:%S %Z', time.localtime(generated)))} · Worst recorded severity: {esc(worst.upper())}. No endpoint monitor can guarantee complete security; this report shows the strongest evidence and the next defensible steps.</p></div>
+<div class='wrap'><div class='hero'><div style='font-size:12px;letter-spacing:1.5px'>JARVIS-1 · FIVE-HOUR SECURITY ADVISORY</div><h1 style='margin:8px 0'>Your system security, prioritized</h1><p>Generated {esc(time.strftime('%Y-%m-%d %H:%M:%S %Z', time.localtime(generated)))} · Worst recorded severity: {esc(worst.upper())}. No endpoint monitor can guarantee complete security; this report shows the strongest evidence and the next defensible steps.</p></div>
 <div class='section'><h2>Coverage at a glance</h2><div class='cards'><div class='card'><b>{len(health['current'])}</b>current</div><div class='card'><b>{len(health['stale'])}</b>stale</div><div class='card'><b>{len(health['failing'])}</b>failing</div><div class='card'><b>{len(health['missing'])}</b>missing</div><div class='card'><b>{len(actionable)}</b>actions</div></div><p><small>Stale: {esc(', '.join(health['stale']) or 'none')} · Failing: {esc(', '.join(health['failing']) or 'none')} · Missing: {esc(', '.join(health['missing']) or 'none')}</small></p></div>
 <div class='section'><h2>Secure next</h2>{action_html}</div>
 <div class='section'>{ai_html}</div>
@@ -400,7 +400,7 @@ def _report_html(health, findings, actionable, blind_spots, checks,
 <div class='section'><h2>Threat research freshness</h2><p>{intel_html}</p><small>Exa results are treated as untrusted leads and vetted locally before they can become findings.</small></div>
 <div class='section'><h2>Verified clean and protected checks</h2><ul>{checks_html}</ul></div>
 <div class='section'><h2>Visibility gaps</h2><p>{len(blind_spots)} gap or design-limit finding(s) are included above. A clean result is only meaningful when its collector is current.</p></div>
-<div class='section'><small>Raw process command lines, credential values, and peer details stay on the local Jarvis Origin dashboard and are not included in this routine email.</small></div></div></body></html>"""
+<div class='section'><small>Raw process command lines, credential values, and peer details stay on the local JARVIS-1 dashboard and are not included in this routine email.</small></div></div></body></html>"""
 
 
 def advisory_report(store, jobs):
@@ -484,7 +484,7 @@ def advisory_report(store, jobs):
         conf, findings, health, intel_state)
 
     lines = [
-        "Jarvis Origin FIVE-HOUR SECURITY ADVISORY",
+        "JARVIS-1 FIVE-HOUR SECURITY ADVISORY",
         time.strftime("Generated %Y-%m-%d %H:%M:%S %Z", time.localtime(generated)),
         "",
         "COLLECTOR FRESHNESS",
@@ -544,7 +544,7 @@ def advisory_report(store, jobs):
         f"${float(intel_state.get('budget', 0)):.2f}.")
 
     worst = findings[0].get("severity", "ok") if findings else "ok"
-    subject = (f"[Jarvis Origin] 5-hour security report — {len(actionable)} action(s), "
+    subject = (f"[JARVIS-1] 5-hour security report — {len(actionable)} action(s), "
                f"worst {worst.upper()}")
     html = _report_html(health, findings, actionable, blind_spots, checks,
                         intel_state, ai_text, ai_note, generated)
@@ -776,10 +776,10 @@ def _dispatch(store, conf, job, findings, error):
         lines.append(f"[CLEARED] {k.split('|', 1)[1].replace('|', ' — ')}")
 
     if to_send:
-        subject = f"[Jarvis Origin] {len(to_send)} alert(s), worst {worst.upper()}: " \
+        subject = f"[JARVIS-1] {len(to_send)} alert(s), worst {worst.upper()}: " \
                   f"{to_send[0][1].get('title', '')}"
     else:
-        subject = f"[Jarvis Origin] {len(cleared)} alert(s) cleared"
+        subject = f"[JARVIS-1] {len(cleared)} alert(s) cleared"
 
     body = "\n\n".join(lines)
     if store.get_meta("alert_capped_at"):

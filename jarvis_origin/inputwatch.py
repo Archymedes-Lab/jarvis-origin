@@ -342,7 +342,7 @@ def _verify_pin(store):
             "input", "medium",
             "the input-hook helper script changed on disk",
             f"sha256 {old[:12]} → {cur[:12]}. If you did not just update "
-            f"Jarvis Origin, treat an unannounced change to a security monitor as "
+            f"JARVIS-1, treat an unannounced change to a security monitor as "
             f"tampering", HOOK_PS1)]
     return []
 
@@ -805,7 +805,7 @@ def _latency_findings(store, beat, probe_registry=True):
             f"({pct:.0f}%) took over 50 ms to reach this hook. Every low-level "
             f"hook in the chain delays input until it returns, so this is what "
             f"a keylogger, screen recorder or overlay feels like. Note that "
-            f"Jarvis Origin's own hook is in that chain and contributes part of it — "
+            f"JARVIS-1's own hook is in that chain and contributes part of it — "
             f"stop it with `jarvis-origin inputwatch --stop` and see whether the "
             f"figure follows.", "input_beats"))
     else:
