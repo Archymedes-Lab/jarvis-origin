@@ -1,4 +1,4 @@
-"""Invariants of the Jarvis Origin cut: what it contains, what it claims, what it touches.
+"""Invariants of the JARVIS-1 cut: what it contains, what it claims, what it touches.
 
 These guard the boundary of the public release itself:
 
@@ -7,7 +7,7 @@ These guard the boundary of the public release itself:
   * the Windows hook helper is found and stopped by a name unique to this
     project, so it can never stop another tool's helper on the same machine;
   * state, config, env vars and the dashboard port are namespaced so a copy of
-    Jarvis Origin cannot collide with another monitor installed alongside it;
+    JARVIS-1 cannot collide with another monitor installed alongside it;
   * a Windows side that is unreachable means no Windows process is launched.
 """
 

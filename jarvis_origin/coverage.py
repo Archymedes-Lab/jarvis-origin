@@ -217,11 +217,11 @@ def known_limits():
                  "the collectors read state on an interval, so anything that "
                  "starts and exits between two passes is invisible to them. "
                  "Closing that gap needs kernel-event interception (Sysmon, "
-                 "Sysmon for Linux, auditd), which Jarvis Origin does not ship.",
+                 "Sysmon for Linux, auditd), which JARVIS-1 does not ship.",
                  "by design"),
         _finding("limits", "low", "no kernel component",
                  "every check runs in userland, so a rootkit already in the "
-                 "kernel can lie to all of them at once. Jarvis Origin has no "
+                 "kernel can lie to all of them at once. JARVIS-1 has no "
                  "cross-view or kernel-integrity checks; treat its silence as "
                  "\"nothing visible from userland\", not \"nothing there\".",
                  "by design"),

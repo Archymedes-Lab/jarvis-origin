@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Jarvis Origin</title>
+<title>JARVIS-1</title>
 <style>
   :root {
     --bg:#0e1116; --panel:#161b22; --panel2:#1c2430; --line:#262d38;
@@ -147,7 +147,7 @@
 </head>
 <body>
 <header>
-  <span class="brand">Jarvis Origin</span>
+  <span class="brand">JARVIS-1</span>
   <span id="status" class="status s-ok">—</span>
   <span class="live"><span id="beat" class="beat on"></span><span id="livetxt">live</span></span>
   <button id="pause" onclick="togglePause()">pause</button>
@@ -617,7 +617,7 @@ function renderOps() {
     ]],
   ];
   document.getElementById("side").innerHTML =
-    `<div class="detail" style="padding:12px 12px 4px">Commands run on the host, not in the browser. Click a row to copy. Paths are relative to the Jarvis Origin checkout.</div>` +
+    `<div class="detail" style="padding:12px 12px 4px">Commands run on the host, not in the browser. Click a row to copy. Paths are relative to the JARVIS-1 checkout.</div>` +
     groups.map(([name, rows]) => `
       <div class="title" style="padding:10px 12px 4px">${esc(name)}</div>
       <table><tbody>${rows.map(([label, cmd]) => `
@@ -812,11 +812,11 @@ async function tick() {
     const r = await fetch("/api/state", { cache: "no-store" });
     if (!r.ok) throw new Error(r.status);
     render(await r.json());
-    if (lostConn) { lostConn = false; say("Reconnected to the Jarvis Origin daemon."); }
+    if (lostConn) { lostConn = false; say("Reconnected to the JARVIS-1 daemon."); }
   } catch (e) {
     document.getElementById("meta").textContent = "daemon unreachable — retrying";
     document.getElementById("beat").className = "beat off";
-    if (!lostConn) { lostConn = true; say("Lost connection to the Jarvis Origin daemon."); }
+    if (!lostConn) { lostConn = true; say("Lost connection to the JARVIS-1 daemon."); }
   }
 }
 tick();

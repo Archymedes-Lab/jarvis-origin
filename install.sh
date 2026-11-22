@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Install Jarvis Origin, and optionally run it continuously.
+# Install JARVIS-1, and optionally run it continuously.
 #
 #   ./install.sh              put `jarvis-origin` on PATH
 #   ./install.sh --service    ...and run the daemon as a systemd *user* service
@@ -42,7 +42,7 @@ if $want_service; then
   mkdir -p "$UNIT"
   cat > "$UNIT/jarvis-origin.service" <<EOF
 [Unit]
-Description=Jarvis Origin — process, network, injected-input and threat-intel monitoring
+Description=JARVIS-1 — process, network, injected-input and threat-intel monitoring
 After=network.target
 
 [Service]
@@ -86,7 +86,7 @@ if $want_windows; then
 Keeping it running across Windows reboots
 --------------------------------------------------------------------
 WSL only runs while Windows keeps it running. Enabling linger (above)
-keeps Jarvis Origin alive inside WSL; this task makes sure WSL itself starts
+keeps JARVIS-1 alive inside WSL; this task makes sure WSL itself starts
 at logon, with no visible window.
 
 Run this ONCE in Windows PowerShell (no elevation needed):
@@ -103,7 +103,7 @@ Run this ONCE in Windows PowerShell (no elevation needed):
        -ExecutionTimeLimit ([TimeSpan]::Zero)
   Register-ScheduledTask -TaskName "WSL Jarvis Origin" -Action $a `
        -Trigger $t -Principal $p -Settings $s `
-       -Description "Starts WSL so Jarvis Origin keeps running"
+       -Description "Starts WSL so JARVIS-1 keeps running"
 
 RunLevel Limited is load-bearing: -RunLevel Highest makes registration
 itself require an elevated shell and fails with 0x80070005. The task does

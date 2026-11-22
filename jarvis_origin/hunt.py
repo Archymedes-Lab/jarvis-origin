@@ -33,7 +33,7 @@ from .util import dpkg_owns, now
 # Which jarvis-origin audit covers which ATT&CK technique. Parent technique ids cover
 # their sub-techniques unless a sub-technique is listed on its own.
 COVERAGE = {
-    # Only what Jarvis Origin itself checks. Claiming a technique no shipped
+    # Only what JARVIS-1 itself checks. Claiming a technique no shipped
     # collector looks at would turn a gap into false reassurance.
     "T1027":     "detect — obfuscated/encoded command lines",
     "T1036":     "detect — masquerading (name vs executable)",
@@ -55,7 +55,7 @@ KNOWN_BLIND = {
     "T1611": "container escape — no container runtime auditing",
     "T1610": "malicious container deployment — no container runtime auditing",
     "T1003": "credential dumping — needs process-access and registry/file "
-             "auditing, which Jarvis Origin does not ship",
+             "auditing, which JARVIS-1 does not ship",
 }
 
 
@@ -454,7 +454,7 @@ def _intercept_active():
     report itself here and move behavioural techniques from "not observable"
     to "covered". None ships, so the answer is always no.
     """
-    # Jarvis Origin ships no interception collector, so it never credits one.
+    # JARVIS-1 ships no interception collector, so it never credits one.
     # Behavioural techniques are reported as not observable, which is true.
     global _INTERCEPT
     if _INTERCEPT is None:

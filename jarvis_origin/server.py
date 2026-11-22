@@ -471,7 +471,7 @@ ALLOWED_HOSTS = {"localhost", "127.0.0.1", "[::1]", "::1"}
 
 
 class Handler(BaseHTTPRequestHandler):
-    server_version = "Jarvis Origin"
+    server_version = "JARVIS-1"
     db_path = DEFAULT_DB
     scheduler = None
 
@@ -569,7 +569,7 @@ def serve(db_path=DEFAULT_DB, port=8790, hosts=("wsl", "win")):
     httpd = ThreadingHTTPServer(("127.0.0.1", port), Handler)
     # flush=True so journalctl shows these immediately under systemd, where
     # stdout is a pipe and would otherwise stay buffered indefinitely.
-    print(f"Jarvis Origin dashboard  \u2192  http://127.0.0.1:{port}", flush=True)
+    print(f"JARVIS-1 dashboard  \u2192  http://127.0.0.1:{port}", flush=True)
     print(f"  watching {'+'.join(hosts)};  database {db_path}", flush=True)
     print("  jobs: " + ", ".join(f"{n} every {v[0]}s" for n, v in JOBS.items()),
           flush=True)
