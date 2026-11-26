@@ -442,6 +442,19 @@ when something hides behind an approved name:
 
 A trait on an approved process still gets flagged.
 
+## Protecting yourself from current attacks
+
+Tools catch only part of what attackers do. [What attackers were selling in November
+2026](docs/notes/2026-11-what-attackers-sell.md) covers:
+
+* AI attack kits;
+* account takeover without passwords;
+* ClickFix and its File Explorer variant, FileFix, with a two-line self-check;
+* theft of AI assistant transcripts;
+* phone spyware.
+
+It ends with a short checklist that anyone can follow, with or without this project.
+
 ## What it does not do
 
 - It is **not** a kernel-level EDR. It samples on an interval, so a process
